@@ -1,18 +1,22 @@
+######################################################################################################################################
+# Python Cartessian Coordinate System "T" Shape Detect Algorithm Module
+# Version : 0.2.0
+# Author : Cafer Umut Ozpinar
+# Date : 02.12.2022
+# Note : All threshold value works dynamic
+######################################################################################################################################
 import cv2
 import numpy as np
-import time
 import math
-import warnings
 
-warnings.filterwarnings("ignore")
 
-threshold_branch = 20
-threshold_lin = 25
-threshold_eq_rat = 30
+branch_threshold = 2.0    # T shape's branch detect threshold 
+linear_threshold = 25.0   # Detection threshold of T shaped linear three-point
+gap_threshold = 30.0   # Equal gap detection threshold at three points of T shape
 
 img = np.zeros((800,1920,3), dtype=np.uint8)
-
-array = np.array([(450,300),(500,300),(550,300),(550,350),(550,400),(100,100),(200,200),(155,145)])
+#(450,300),(700,300),(950,300),(550,350),(550,400),(100,100),(200,200),(155,145)
+array = np.array([(450,300)])
 linear_points = []
 equal_points = []
 
@@ -26,6 +30,7 @@ def check_branch():
     for i in range(len(equal_points)):
         lenx = abs(equal_points[i][0][0] - equal_points[i][2][0])
         leny = abs(equal_points[i][0][1] - equal_points[i][2][1])
+        dst = distance(equal_points[i][0],equal_points[i][1])
 
         lenx = lenx + leny
         leny = lenx - leny
@@ -34,67 +39,42 @@ def check_branch():
 
         aci = -math.degrees(math.atan2(equal_points[i][0][0] - equal_points[i][2][0], equal_points[i][0][1] - equal_points[i][2][1]))
         if aci > 90:
-            xmin = equal_points[i][1][0] + lenx - threshold_branch
-            xmax = equal_points[i][1][0] + lenx + threshold_branch
-            ymin = equal_points[i][1][1] + leny - threshold_branch
-            ymax = equal_points[i][1][1] + leny + threshold_branch
-
-            cv2.circle(img, (xmin,ymin), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmax,ymax), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmin,ymax), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmax,ymin), radius=3, color=(255, 255, 255), thickness=1)
+            xmin = int((equal_points[i][1][0] + lenx) - (dst/branch_threshold))
+            xmax = int((equal_points[i][1][0] + lenx) + (dst/branch_threshold))
+            ymin = int((equal_points[i][1][1] + leny) - (dst/branch_threshold))
+            ymax = int((equal_points[i][1][1] + leny) + (dst/branch_threshold))
             
             for shrc in array:
-                print
                 if shrc[0] < xmax and shrc[0] > xmin and shrc[1] < ymax and shrc[1] > ymin:
                     cv2.line(img, equal_points[i][1], shrc, (0,0,255), 2)
 
-            xmin = equal_points[i][1][0] - lenx - threshold_branch
-            xmax = equal_points[i][1][0] - lenx + threshold_branch
-            ymin = equal_points[i][1][1] - leny - threshold_branch
-            ymax = equal_points[i][1][1] - leny + threshold_branch
-
-            cv2.circle(img, (xmin,ymin), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmax,ymax), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmin,ymax), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmax,ymin), radius=3, color=(255, 255, 255), thickness=1)
+            xmin = int((equal_points[i][1][0] - lenx) - (dst/branch_threshold))
+            xmax = int((equal_points[i][1][0] - lenx) + (dst/branch_threshold))
+            ymin = int((equal_points[i][1][1] - leny) - (dst/branch_threshold))
+            ymax = int((equal_points[i][1][1] - leny) + (dst/branch_threshold))
 
             for shrc in array:
-                print
                 if shrc[0] < xmax and shrc[0] > xmin and shrc[1] < ymax and shrc[1] > ymin:
                     cv2.line(img, equal_points[i][1], shrc, (0,0,255), 2)
 
         else:
-            xmin = equal_points[i][1][0] - lenx - threshold_branch
-            xmax = equal_points[i][1][0] - lenx + threshold_branch
-            ymin = equal_points[i][1][1] + leny - threshold_branch
-            ymax = equal_points[i][1][1] + leny + threshold_branch
-
-            cv2.circle(img, (xmin,ymin), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmax,ymax), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmin,ymax), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmax,ymin), radius=3, color=(255, 255, 255), thickness=1)
+            xmin = int((equal_points[i][1][0] - lenx) - (dst/branch_threshold))
+            xmax = int((equal_points[i][1][0] - lenx) + (dst/branch_threshold))
+            ymin = int((equal_points[i][1][1] + leny) - (dst/branch_threshold))
+            ymax = int((equal_points[i][1][1] + leny) + (dst/branch_threshold))
 
             for shrc in array:
-                print
                 if shrc[0] < xmax and shrc[0] > xmin and shrc[1] < ymax and shrc[1] > ymin:
                     cv2.line(img, equal_points[i][1], shrc, (0,0,255), 2)
             
-            xmin = equal_points[i][1][0] + lenx - threshold_branch
-            xmax = equal_points[i][1][0] + lenx + threshold_branch
-            ymin = equal_points[i][1][1] - leny - threshold_branch
-            ymax = equal_points[i][1][1] - leny + threshold_branch
-
-            cv2.circle(img, (xmin,ymin), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmax,ymax), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmin,ymax), radius=3, color=(255, 255, 255), thickness=1)
-            cv2.circle(img, (xmax,ymin), radius=3, color=(255, 255, 255), thickness=1)
+            xmin = int((equal_points[i][1][0] + lenx) - (dst/branch_threshold))
+            xmax = int((equal_points[i][1][0] + lenx) + (dst/branch_threshold))
+            ymin = int((equal_points[i][1][1] - leny) - (dst/branch_threshold))
+            ymax = int((equal_points[i][1][1] - leny) + (dst/branch_threshold))
 
             for shrc in array:
-                print
                 if shrc[0] < xmax and shrc[0] > xmin and shrc[1] < ymax and shrc[1] > ymin:
                     cv2.line(img, equal_points[i][1], shrc, (0,0,255), 2)
-            
             
 
         
@@ -135,7 +115,7 @@ def check_mid(points):
         if sortedPoints in useds: continue
         useds.append(sortedPoints)
 
-        threshold_eq = distance(mid_p, sortedPoints[0]) / 100 * threshold_eq_rat
+        threshold_eq = distance(mid_p, sortedPoints[0]) / 100 * gap_threshold
         passVar = 0
         if abs(distance(mid_p, sortedPoints[0]) - distance(mid_p, sortedPoints[2])) < threshold_eq:
             cv2.line(img,sortedPoints[0], sortedPoints[2],(0,0,255),2)
@@ -190,8 +170,8 @@ def check_diagonal():
                     result_x = abs(result_x)
                     result_y = abs(result_y)
                     
-                    if result_x < threshold_lin and result_y < threshold_lin:
-                        jus = 250
+                    if result_x < linear_threshold and result_y < linear_threshold:
+                        jus = 550
                         if distance(array[i],array[j]) < jus and distance(array[i],array[k]) < jus and distance(array[k],array[j]) < jus:
                             linear_points.insert(0,((array[i][0],array[i][1]),(array[j][0],array[j][1]),(array[k][0],array[k][1])))
                             cv2.line(img,array[i],array[j],(255,0,0),2)
@@ -204,7 +184,6 @@ def check_diagonal():
 def click_event(event, x, y, flags, params):
     global array
     if event == cv2.EVENT_LBUTTONDOWN:
-        print(x, ' ', y)
         array = np.vstack([array,[x, y]])
         #print(array)
         check_diagonal()
