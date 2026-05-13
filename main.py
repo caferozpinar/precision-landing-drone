@@ -5,7 +5,7 @@ from Tracker import ROI_tracker
 from Calculate import calculator
 
 #variable definition
-source = "track_test.mp4"
+source = "Media/track_test.mp4"
 landing = False
 
 if __name__ == "__main__":

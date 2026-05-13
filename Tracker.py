@@ -36,7 +36,6 @@ class ROI_tracker:
             return 0
         
         #initalize tracker object 
-        print(ROI)
         ret = self.tracker.init(frame,ROI)
 
         #tracking loop
