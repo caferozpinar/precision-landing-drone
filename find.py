@@ -1,9 +1,9 @@
 ######################################################################################################################################
 # Python Cartessian Coordinate System "T" Shape Detect Algorithm Module
-# Version : 0.2.0
+# Version : 0.2.2
 # Author : Cafer Umut Ozpinar
 # Date : 02.12.2022
-# Note :
+# Note : ...
 ######################################################################################################################################
 import math
 import numpy as np
@@ -34,7 +34,11 @@ class find_T():
                 # line equation with two known points => y = mx + b
                 # m = y1 - y2 / x1 - x2
                 # b = y - mx
-                m = (array[point_1][1] - array[point_2][1]) / (array[point_1][0] - array[point_2][0])
+                tempx = (array[point_1][1] - array[point_2][1])
+                tempy = (array[point_1][0] - array[point_2][0])
+                if tempx == 0 or tempy == 0:
+                    continue
+                m = tempx / tempy
                 b = array[point_1][1] - (m * array[point_1][0])
 
                 for point_3 in range(len(array)):
