@@ -11,32 +11,32 @@ class uav():
         print(self.vhc.mode.name)
         print("connected vehicle")
     
-    def prearmCheck(vehicle):
+    def prearmCheck(self):
         print("Basic pre-arm checks")
         # Don't try to arm until autopilot is ready
         i = 0
-        while not vehicle.is_armable:
+        while not self.vhc.is_armable:
             i = i + 1
             print(" Waiting for vehicle to initialise...")
             time.sleep(1)
-            if i >= 90:
+            if i >= 3:
                 print("prearm check timeout (90s)")
                 return 1
         print("Ready to Arm")
         return 0
-    def armThrottle(vehicle):
+    def armThrottle(self):
         print("Arming Motors")
-        vehicle.mode    = VehicleMode("GUIDED")
-        vehicle.armed   = True
-        while not vehicle.armed:
+        self.vhc.mode    = VehicleMode("GUIDED")
+        self.vhc.armed   = True
+        while not self.vhc.armed:
             print(" Waiting for arming...")
             time.sleep(0.5)
         print("Motors Armed")
         print("Taking off!")
     
-    def takeoff(vehicle, target_altitude):
+    def takeoff(self, target_altitude):
         print("taking off")
-        vehicle.simple_takeoff(target_altitude) # Take off to target altitude
+        self.vhc.simple_takeoff(target_altitude) # Take off to target altitude
 
     def printStatus(self):
         print("System status : ", str(self.vhc.system_status.state))
@@ -80,16 +80,15 @@ class uav():
         self.Upi_max = Upi_max
         
     def trackCoordinates(self, coor_array, resolution):
-        
-        temp = (0.54630248984 * self.vhc.location.global_frame.alt * 2) / resolution[0]
-
+        #self.vhc.location.global_frame.alt
+        if len(coor_array) < 4: return 2
+        temp = (0.54630248984 * 1 * 2) / resolution[0]
         mid_pointer_x = (coor_array[0][0] + coor_array[2][0]) / 2
         mid_pointer_y = (coor_array[0][1] + coor_array[2][1]) / 2
         distance_x = (resolution[0] / 2) - mid_pointer_x
         distance_y = (resolution[1] / 2) - mid_pointer_y
         distance_real_y = distance_x * temp
         distance_real_x = distance_y * temp
-
         vel_x = self.vhc.velocity[1]
         error_x = self.dis_pos_ref - distance_real_x
         Upos_px = self.Kp_pos * error_x
@@ -117,5 +116,5 @@ class uav():
 
         print(" x velocity : " + str(velocity_x) + " y velocity : " + str(velocity_y))
 
-        if self.vhc.location.global_frame.alt <= 0: return 0
-        else: return 2
+        #if self.vhc.location.global_frame.alt <= 0: return 0
+        return 2

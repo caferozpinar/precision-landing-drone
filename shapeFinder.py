@@ -1,8 +1,6 @@
 
 import math
 
-
-
 class TFinder():
     
     def __init__(self):
@@ -43,7 +41,7 @@ class TFinder():
         return int(min_x), int(min_y), int(width), int(height)
 
 
-    def findShape(self,array):
+    def findShape(self, array):
         shape_array = []
         shape_array.clear()
 
@@ -52,18 +50,21 @@ class TFinder():
 
         equal_linears = []
         equal_linears.clear()
-
         if len(array) < 2:
-            return 0, shape_array
+            return 2, shape_array
 
         linear_centers = self.checkLinear(array)
         equal_linears = self.checkEqual(linear_centers)
         shape_array = self.checkBranch(equal_linears,array)
-        
+        if len(shape_array) == 1:
+            shape_array = list(shape_array)
+            tmp = shape_array[0]
+            shape_array.clear()
+            shape_array = tmp
         if len(shape_array) < 4:
             shape_array.clear()
-            return 0, shape_array
-        return 1, shape_array
+            return 2, shape_array
+        return 0, shape_array
 
     def checkLinear(self, array):
         linear_points = []

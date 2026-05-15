@@ -3,16 +3,16 @@
 import cam
 import shapeFinder
 import motion_control
-import cProfile
+import time
 #2592 1944
 
-camera_threshold = (0, 0, 169), (179, 34, 255)
-finder_threshold = 10.0, 3.0, 1.5
-pointer_location = 1 #set mode 
+camera_threshold = (0, 0, 169), (179, 84, 255)
+finder_threshold = 10.0, 3.0, 2.0
+pointer_location = (40.9591942 , 29.1356228)
 
 distance_pos_ref = 0
-Kp_pos = 0
-Kp_vel = 0
+Kp_pos = 1
+Kp_vel = 1
 Ki_vel = 0
 Ui_vel_integ = 0
 Upi_max = 3
@@ -31,32 +31,33 @@ class precisionLand():
         pass
     
     def initalize(self):
-        try:
-            self.camera = cam.colorDetect()
-            self.camera.captureCam(1)
-            self.camera.setThreshold(camera_threshold)
-            self.TFinder = shapeFinder.TFinder()
-            self.TFinder.setThreshold(finder_threshold)
-            self.vehicle = motion_control.uav("dev/ttyAMA0", baudrate=921600, heartbeat_timeout=180)
-            self.vehicle.printStatus()
-            self.vehicle.setMultiplier(distance_pos_ref, Kp_pos, Kp_vel, Ki_vel, Ui_vel_integ, Upi_max)
+        #try:
+        self.camera = cam.colorDetect()
+        self.camera.captureCam(0)
+        self.camera.setThreshold(camera_threshold[0], camera_threshold[1])
+        self.TFinder = shapeFinder.TFinder()
+        self.TFinder.setThreshold(finder_threshold[0], finder_threshold[1], finder_threshold[2])      
+        self.vehicle = motion_control.uav("/dev/ttyAMA0", baudrate=921600, heartbeat_timeout=180)
+        self.vehicle.printStatus()
+        self.vehicle.setMultiplier(distance_pos_ref, Kp_pos, Kp_vel, Ki_vel, Upi_max)
 
-            return 0
-        except:
-            return 1
+        return 0
+        #except:
+            #return 1
     def takeoffAndQuest(self, takeoff_alt):
-        success = motion_control.uav.prearmCheck(self.vehicle)
+        success = self.vehicle.prearmCheck()
         if success == 1:
             return 1
-        motion_control.uav.armThrottle(self.vehicle)
-        motion_control.uav.takeoff(self.vehicle, takeoff_alt)
+        self.vehicle.armThrottle()
+        self.vehicle.takeoff(takeoff_alt)
         return 0
 
     def goPointerCoordinates(self, landing_mode):
         try:
-            print("checking landing mode")
+            #print("checking landing mode")
             if landing_mode == 1:
-                self.vehicle.simple_goto(pointer_location, groundspeed=10)
+                pointer_loc = (pointer_location[0], pointer_location[1], self.vehicle.vhc.location.global_frame.alt)
+                self.vehicle.vhc.simple_goto(pointer_loc, groundspeed=10)
             else:
                 #connect rover telemetry and go readed coordinates
                 # this attr disabled now
@@ -65,15 +66,22 @@ class precisionLand():
         except:
             return 1
     def Find(self):
-        centers = self.camera.detect()
+        success, centers = self.camera.detect()
         success, self.Tshape = self.TFinder.findShape(centers)
         if success == 0:return 0
         if success == 1:return 1
         if success == 2:return 2
     def headPointer(self):
         self.vehicle.trackCoordinates(self.Tshape, self.camera.resolution)
-
-    def RTL():
+    def waitMode(self):
+        
+        while self.vehicle.vhc.mode.name != "LAND":
+            print("waiting Land mode")
+            time.sleep(1)
+        self.vehicle.vhc.mode = "GUIDED"
+        print("mode set to guided, script started")
+        return 0
+    def RTL(self):
         pass
 
 if __name__ == "__main__":
@@ -85,7 +93,8 @@ if __name__ == "__main__":
             print("initalize failed")
             print("Exit with Error code : 1")
             break
-        quest = precise.takeoffAndQuest(10)
+        quest = precise.waitMode()
+        print("success")
         if quest:
             print("Prearm checks failed")
             print("Exit with error code 2")
@@ -99,7 +108,7 @@ if __name__ == "__main__":
         # 1 : predefined coordinates, 2 : connect rover and track
         if pointer_missing:
             point = precise.goPointerCoordinates(1)
-            if point:
+            if not point: #change after test !!!!!!!
                 print("Targeting pointer failed")
                 precise.RTL()
                 print("Exit with error code 3")
@@ -116,7 +125,7 @@ if __name__ == "__main__":
             elif shape == 2:
                 pointer_missing = 1
                 need_pid = 0
-            else:
+            elif shape == 0:
                 need_pid = 1
                 pointer_missing = 0
         if need_pid:

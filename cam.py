@@ -79,8 +79,7 @@ class colorDetect():
         maskedimage = cv2.inRange(hsvimage, self.lower_threshold, self.upper_threshold)
 
         # Find contours on masked image
-        contours, hierarchy = cv2.findContours(maskedimage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
+        noidea, contours, hieracry = cv2.findContours(maskedimage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         # Calculate detected centers
         for contours in contours:
             x, y, width, height = cv2.boundingRect(contours)
@@ -89,6 +88,5 @@ class colorDetect():
             detected_centers.insert(0,(x,y))
             x = 0
             y = 0
-        
         if len(detected_centers) == 0 : return 2, detected_centers
         else : return 1, detected_centers
