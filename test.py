@@ -1,5 +1,7 @@
 import cv2
+import dronekit
 
+vhc = dronekit.connect()
 
 frame = cv2.imread("acik.png")
 
@@ -11,3 +13,5 @@ cv2.imshow("hebelehübele", maskedimage)
 
 cv2.waitKey(0)
 cv2.destroyAllWindows()
+
+vhc.command.upload
