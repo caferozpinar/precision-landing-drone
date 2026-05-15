@@ -21,6 +21,25 @@ class colorDetect():
         self.upper_threshold = (0, 0, 0)
         print("Detector initilaziton --DONE--")
     
+    def showFrame(self, shapes):
+
+        success, frame = self.capture.read()
+        for centers in shapes:
+            for center in centers:
+                x = int(center[0])
+                y = int(center[1])
+                cv2.circle(frame, (x, y), 3, (0, 0, 255), 3)
+
+        cv2.imshow("test frame", frame)
+
+        k = cv2.waitKey(1) & 0xff
+        if k == 27 :
+            self.capture.release()
+            cv2.destroyAllWindows()
+            return 0
+        
+        return 1
+
     # Capture camera source
     def captureCam(self, source):
         self.capture = cv2.VideoCapture(source)
@@ -50,7 +69,7 @@ class colorDetect():
         success, frame = self.capture.read()
 
         if not success:
-            return detected_centers
+            return -1, detected_centers
         
         # Convert captured frame bgr to hsv format
         hsvimage = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -60,10 +79,6 @@ class colorDetect():
 
         # Find contours on masked image
         contours, hierarchy = cv2.findContours(maskedimage, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        
-        # If none of the contours are detected, return the empty container
-        if not len(contours):
-            return detected_centers
         
         # Calculate detected centers
         for contours in contours:
@@ -96,19 +111,18 @@ class colorDetect():
             self.tracker = cv2.TrackerCSRT_create()
     
 
-    def roiTracker(self, roi, test = "False"):
-        success, frame = self.capture.read()
-        
-        if not success:
+    def roiTracker(self, roi_gelen, test = "False"):
+        success_pre, frame_pre = self.capture.read()
+        if not success_pre:
             print("Cannot read frame")
             self.camRelease()
             return 2
-        track_notsuccess = self.tracker.init(frame, roi)
+        track_notsuccess = self.tracker.init(frame_pre, roi_gelen)
         
         if track_notsuccess:
             self.camRelease()
             print("Tracker initalization failed")
-            return 3
+            return 2
 
         print("Tracker succesfully initalized")
 
@@ -119,19 +133,19 @@ class colorDetect():
                 print("Cannot read frame")
                 self.camRelease()
                 cv2.destroyAllWindows()
-                return 2
+                return 3
             
             track_success, roi = self.tracker.update(frame)
-
-            center = roi[0] + (roi[2] / 2) , roi[1] + (roi[3] / 2)
-            print(center)
+            
+            #center = roi[0] + (roi[2] / 2) , roi[1] + (roi[3] / 2)
             if track_success and test:
                 p1 = (int(roi[0]), int(roi[1]))
                 p2 = (int(roi[0] + roi[2]), int(roi[1] + roi[3]))
                 cv2.rectangle(frame, p1, p2, (255,0,0), 2, 1)
             
                 
-            
+            if track_success:
+                pass
             else:
                 print("Tracking failed")
                 return 4

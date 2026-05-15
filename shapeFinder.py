@@ -25,12 +25,12 @@ class TFinder():
         return math.sqrt(((point1[0] - point2[0]) * (point1[0] - point2[0])) + ((point1[1] - point2[1]) * (point1[1] - point2[1])))
 
     def calculateROI(self,Tshape):
-        min_x = Tshape[0][0]
-        min_y = Tshape[0][1]
-        max_x = Tshape[0][0]
-        max_y = Tshape[0][1]
+        min_x = Tshape[0][0][0]
+        min_y = Tshape[0][0][1]
+        max_x = Tshape[0][0][0]
+        max_y = Tshape[0][0][1]
 
-        for arr in Tshape:
+        for arr in Tshape[0]:
             if arr[0] < min_x : min_x = arr[0]
             if arr[1] < min_y : min_y = arr[1]
             if arr[0] > max_x : max_x = arr[0]
@@ -54,7 +54,7 @@ class TFinder():
         equal_linears.clear()
 
         if len(array) < 2:
-            return shape_array
+            return 0, shape_array
 
         linear_centers = self.checkLinear(array)
         equal_linears = self.checkEqual(linear_centers)
@@ -63,7 +63,6 @@ class TFinder():
         if len(shape_array) < 4:
             shape_array.clear()
             return 0, shape_array
-
         return 1, shape_array
 
     def checkLinear(self, array):
@@ -150,12 +149,11 @@ class TFinder():
 
         return equal_linears
 
-    def checkBranch(self, equal_linears,array):
+    def checkBranch(self, equal_linears, array):
         shape_array = []
-        shape_array.clear
+        shape_array.clear()
+        if not len(equal_linears): return shape_array
         shape_array = equal_linears
-        if len(equal_linears) == 1: shape_array = equal_linears[0]
-        shape_array = list(shape_array)
 
         for i in range(len(equal_linears)):
             lenx = abs(equal_linears[i][0][0] - equal_linears[i][2][0])
@@ -176,7 +174,8 @@ class TFinder():
                 for shrc in array:
                     if shrc[0] < xmax and shrc[0] > xmin and shrc[1] < ymax and shrc[1] > ymin:
                         templist = shrc[0], shrc[1]
-                        shape_array.insert(3, templist)
+                        shape_array[i] = list(shape_array[i])
+                        shape_array[i].insert(3, templist)
 
                 xmin = int((equal_linears[i][1][0] - lenx) - (dst / self.branch_threshold))
                 xmax = int((equal_linears[i][1][0] - lenx) + (dst / self.branch_threshold))
@@ -186,6 +185,7 @@ class TFinder():
                 for shrc in array:
                     if shrc[0] < xmax and shrc[0] > xmin and shrc[1] < ymax and shrc[1] > ymin:
                         templist = shrc[0], shrc[1]
+                        shape_array[i] = list(shape_array[i])
                         shape_array[i].insert(3, templist)
 
             else:
@@ -197,6 +197,7 @@ class TFinder():
                 for shrc in array:
                     if shrc[0] < xmax and shrc[0] > xmin and shrc[1] < ymax and shrc[1] > ymin:
                         templist = shrc[0], shrc[1]
+                        shape_array[i] = list(shape_array[i])
                         shape_array[i].insert(3, templist)
 
                 xmin = int((equal_linears[i][1][0] + lenx) - (dst / self.branch_threshold))
@@ -207,6 +208,7 @@ class TFinder():
                 for shrc in array:
                     if shrc[0] < xmax and shrc[0] > xmin and shrc[1] < ymax and shrc[1] > ymin:
                         templist = shrc[0], shrc[1]
+                        shape_array[i] = list(shape_array[i])
                         shape_array[i].insert(3, templist)
 
         return shape_array
