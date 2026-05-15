@@ -1,21 +1,14 @@
-class test():
-    def do():
-        print("just do")
+import dronekit_sitl
 
-    class inner():
-        def __init__(self,number):
-            self.number = number
-            print("initalized")
-        
-        def jd(self):
-            print("just do it" + str(self.number))
+sitl = dronekit_sitl.start_default()
+connection_string = sitl.connection_string()
 
+print(connection_string)
+while True:
+    text = input()
+    if text == "exit()":
+        break
+    pass
 
-
-obj = test.inner(2214)
-
-obj.jd()
-
-obj = test.inner(2213)
-
-obj.jd()
+sitl.stop()
+print("exit ...")
