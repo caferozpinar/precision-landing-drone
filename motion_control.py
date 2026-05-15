@@ -1,4 +1,5 @@
 import time
+import math
 import dronekit
 from dronekit import mavutil
 from dronekit import VehicleMode
@@ -45,7 +46,7 @@ class uav():
         print("Last heartbeat : ", str(self.vhc.last_heartbeat))
         print("Mode : ", str(self.vhc.mode.name))
 
-    def set_velocity_body(vehicle, vx, vy, vz):
+    def set_velocity_body(self, vehicle, vx, vy, vz):
         """ Remember: vz is positive downward!!!
         http://ardupilot.org/dev/docs/copter-commands-in-guided-mode.html
         
@@ -58,6 +59,7 @@ class uav():
         
         
         """
+        
         msg = vehicle.message_factory.set_position_target_local_ned_encode(
                 0,
                 0, 0,
@@ -81,6 +83,7 @@ class uav():
         
     def trackCoordinates(self, coor_array, resolution):
         #self.vhc.location.global_frame.alt
+        velocity_z = 0.0
         if len(coor_array) < 4: return 2
         temp = (0.54630248984 * 1 * 2) / resolution[0]
         mid_pointer_x = (coor_array[0][0] + coor_array[2][0]) / 2
@@ -113,8 +116,11 @@ class uav():
         velocity_y = Upi_vel_y
         self.Ui_vel_integ_y = Ui_vel_y
         
+        error_circ = math.sqrt((error_y * error_y) + (error_x * error_x))
+        if error_circ <= 0.1: velocity_z = 0.2
+        else: velocity_z = 0.0
+        print(" x velocity : " + str(velocity_x) + " y velocity : " + str(velocity_y) + " z velocity : " + str(velocity_z))
+        self.set_velocity_body(self.vhc, velocity_x, velocity_y, velocity_z)
 
-        print(" x velocity : " + str(velocity_x) + " y velocity : " + str(velocity_y))
-
-        #if self.vhc.location.global_frame.alt <= 0: return 0
+        if self.vhc.location.global_frame.alt <= 0: return 0
         return 2
