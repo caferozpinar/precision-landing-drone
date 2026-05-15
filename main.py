@@ -5,7 +5,6 @@ import shapeFinder
 import motion_control
 import time
 import openmvSer
-import threading
 #2592 1944
 
 camera_threshold = (0, 0, 169), (179, 84, 255)

@@ -92,7 +92,6 @@ class uav():
         distance_y = (resolution[1] / 2) - mid_pointer_y
         distance_real_y = distance_x * temp
         distance_real_x = distance_y * temp
-        
         vel_x = self.vhc.velocity[1]
         error_x = self.dis_pos_ref - distance_real_x
         Upos_px = self.Kp_pos * error_x
