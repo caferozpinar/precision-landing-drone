@@ -44,6 +44,7 @@ class colorDetect():
     def captureCam(self, source):
         self.capture = cv2.VideoCapture(source)
         success, frame = self.capture.read()
+        self.resolution = frame.shape
 
         if not success:
             print("ERROR WHILE READING CAMERA SOURCE")
@@ -91,69 +92,3 @@ class colorDetect():
         
         if len(detected_centers) == 0 : return 2, detected_centers
         else : return 1, detected_centers
-    
-    def initTracker(self, tracker_type = "KCF"):
-        tracker_type = tracker_type.upper()
-
-        if tracker_type == 'BOOSTING':
-            self.tracker = cv2.legacy.TrackerBoosting_create()
-        if tracker_type == 'MIL':
-            self.tracker = cv2.TrackerMIL_create() 
-        if tracker_type == 'KCF':
-            self.tracker = cv2.TrackerKCF_create() 
-        if tracker_type == 'TLD':
-            self.tracker = cv2.legacy.TrackerTLD_create() 
-        if tracker_type == 'MEDIANFLOW':
-            self.tracker = cv2.legacy.TrackerMedianFlow_create() 
-        if tracker_type == 'MOSSE':
-            self.tracker = cv2.legacy.TrackerMOSSE_create()
-        if tracker_type == "CSRT":
-            self.tracker = cv2.TrackerCSRT_create()
-    
-
-    def roiTracker(self, roi_gelen, test = "False"):
-        success_pre, frame_pre = self.capture.read()
-        if not success_pre:
-            print("Cannot read frame")
-            self.camRelease()
-            return 2
-        track_notsuccess = self.tracker.init(frame_pre, roi_gelen)
-        
-        if track_notsuccess:
-            self.camRelease()
-            print("Tracker initalization failed")
-            return 2
-
-        print("Tracker succesfully initalized")
-
-        while True:
-            success, frame = self.capture.read()
-            
-            if not success:
-                print("Cannot read frame")
-                self.camRelease()
-                cv2.destroyAllWindows()
-                return 3
-            
-            track_success, roi = self.tracker.update(frame)
-            
-            #center = roi[0] + (roi[2] / 2) , roi[1] + (roi[3] / 2)
-            if track_success and test:
-                p1 = (int(roi[0]), int(roi[1]))
-                p2 = (int(roi[0] + roi[2]), int(roi[1] + roi[3]))
-                cv2.rectangle(frame, p1, p2, (255,0,0), 2, 1)
-            
-                
-            if track_success:
-                pass
-            else:
-                print("Tracking failed")
-                return 4
-            
-            cv2.imshow("test", frame)
-            k = cv2.waitKey(1) & 0xff
-            if k == 27 :
-                self.capture.release()
-                cv2.destroyAllWindows()
-                return 0
-

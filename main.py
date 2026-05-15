@@ -1,88 +1,134 @@
 
+#import dronekit
 import cam
 import shapeFinder
-import time
-def stage(phase = 1):
-    # Phase " 1 " set threshold and initalize system
-    if phase == 1:
-        global camera
-        global TFinder
-        # Open camera and detect shape/color
-        camera = cam.colorDetect()
-        camera.captureCam("C:/Users/ozpin/Documents/My_Workspace/TEKNOFEST-2023/SERBEST-GÖREV/Precision_land_software/DRONE SOFTWARE/versions/ver_0.3.0/test.mp4")
-        camera.setThreshold((0, 0, 169), (179, 34, 255))
-        camera.initTracker("CSRT")
-        TFinder = shapeFinder.TFinder()
-        TFinder.setThreshold(10.0, 3.0, 1.5)
-        return 2
+import motion_control
+import cProfile
+#2592 1944
 
-    # Read next frame and detect objects
-    if phase == 2:
-        global centers
-        success, centers = camera.detect()
+camera_threshold = (0, 0, 169), (179, 34, 255)
+finder_threshold = 10.0, 3.0, 1.5
+pointer_location = 1 #set mode 
 
-        if success == 1 : 
-            return 3
-        elif success == 2 : 
-            return 2
-        # elif success == 3 : return 1
-        else : return -1
+distance_pos_ref = 0
+Kp_pos = 0
+Kp_vel = 0
+Ki_vel = 0
+Ui_vel_integ = 0
+Upi_max = 3
 
-    # detect object in frame
-    if phase == 3:
-        global Tshape
-        # Finding interested shape in returned centers
-        success, Tshape = TFinder.findShape(centers)
-        if success == 1 : 
-            return 5
-        elif success == 0: 
-            return 2
-        else : return -1
-        
-    # Track Region of interest
-    if phase == 4:
-        roi = TFinder.calculateROI(Tshape)
-        success = camera.roiTracker(roi, True)
-        if success == 2: 
+distance_height_ref = 30
+Kp_height = 0
+Kp_height_vel = 0
+Ki_height_vel = 0
+Ui_height_vel = 0
+Upi_heigth_max = 0
+
+
+class precisionLand():
+
+    def __init__(self):
+        pass
+    
+    def initalize(self):
+        try:
+            self.camera = cam.colorDetect()
+            self.camera.captureCam(1)
+            self.camera.setThreshold(camera_threshold)
+            self.TFinder = shapeFinder.TFinder()
+            self.TFinder.setThreshold(finder_threshold)
+            self.vehicle = motion_control.uav("dev/ttyAMA0", baudrate=921600, heartbeat_timeout=180)
+            self.vehicle.printStatus()
+            self.vehicle.setMultiplier(distance_pos_ref, Kp_pos, Kp_vel, Ki_vel, Ui_vel_integ, Upi_max)
+
+            return 0
+        except:
             return 1
-        if success == 3: 
-            return 4
-        if success == 4: 
-            return 2
+    def takeoffAndQuest(self, takeoff_alt):
+        success = motion_control.uav.prearmCheck(self.vehicle)
+        if success == 1:
+            return 1
+        motion_control.uav.armThrottle(self.vehicle)
+        motion_control.uav.takeoff(self.vehicle, takeoff_alt)
+        return 0
 
-    if phase == 5:
-        success = camera.showFrame(Tshape)
-        if success == 1: return 2
-        else : return -1
+    def goPointerCoordinates(self, landing_mode):
+        try:
+            print("checking landing mode")
+            if landing_mode == 1:
+                self.vehicle.simple_goto(pointer_location, groundspeed=10)
+            else:
+                #connect rover telemetry and go readed coordinates
+                # this attr disabled now
+                pass
+            return 0
+        except:
+            return 1
+    def Find(self):
+        centers = self.camera.detect()
+        success, self.Tshape = self.TFinder.findShape(centers)
+        if success == 0:return 0
+        if success == 1:return 1
+        if success == 2:return 2
+    def headPointer(self):
+        self.vehicle.trackCoordinates(self.Tshape, self.camera.resolution)
 
-
-
-    else :
-        print("Undefined ERROR")
-        print("Flight mode set RTL")
-        rtl = 1
-        if not rtl :
-            latitude , longitude = 1, 2
-            print("rtl failed! landing imadietly")
-            print("Emergency landing coordinates :")
-            print("Latitude : " + str(latitude))
-            print("Longitude : " + str(longitude))
-        return 6730
-        
-
-
-
+    def RTL():
+        pass
 
 if __name__ == "__main__":
-    i = 0
-    print("################### Starting Script ###################")
-    value = 1
-    while 1:
-        i = i + 1
-        print(i)
-        value = stage(value)
-
-        if value == 6730 :
-            print("SCRIPT EXITED WITH CODE 6730")
+    #do only once per script
+    while True:
+        precise = precisionLand()
+        init = precise.initalize()
+        if init:
+            print("initalize failed")
+            print("Exit with Error code : 1")
             break
-    print("################### END OF SCRIPT ####################")
+        quest = precise.takeoffAndQuest(10)
+        if quest:
+            print("Prearm checks failed")
+            print("Exit with error code 2")
+            break
+        break
+    # do while done
+    pointer_missing = 1
+    shape_not_detected = 0
+    need_pid = 0
+    while True:
+        # 1 : predefined coordinates, 2 : connect rover and track
+        if pointer_missing:
+            point = precise.goPointerCoordinates(1)
+            if point:
+                print("Targeting pointer failed")
+                precise.RTL()
+                print("Exit with error code 3")
+                break
+            pointer_missing = 0
+            shape_not_detected = 1
+        if shape_not_detected:
+            shape = precise.Find()
+            if shape == 1:
+                print("Camera Error")
+                precise.RTL()
+                print("Exit with Error code 4")
+                break
+            elif shape == 2:
+                pointer_missing = 1
+                need_pid = 0
+            else:
+                need_pid = 1
+                pointer_missing = 0
+        if need_pid:
+            pid = precise.headPointer()
+            if pid == 0:
+                print("landed successfully")
+                print("exiting script with success")
+                break
+            if pid == 1:
+                print("Unkown Error")
+                print("Exit with Error code 5")
+                break
+            if pid == 2:
+                need_pid = 0
+                pointer_missing = 1         
