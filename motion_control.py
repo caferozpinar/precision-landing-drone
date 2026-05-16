@@ -36,9 +36,9 @@ class uav():
             time.sleep(1)
             if i >= 3:
                 print("prearm check timeout (90s)")
-                return 1
+                return 0
         print("Ready to Arm")
-        return 0
+        return 1
     def armThrottle(self):
         print("Arming Motors")
         self.vhc.mode    = VehicleMode("GUIDED")
