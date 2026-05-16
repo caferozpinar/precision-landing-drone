@@ -1,6 +1,7 @@
 import Parameters as p
 from pymavlink import mavutil
 import math
+import Logging
 errorX = 0
 errorY = 0
 
@@ -23,7 +24,7 @@ def SetVelocity(vx, vy, vz):
             0, 0, 0,        #-- POSITION
             vx, vy, vz,     #-- VELOCITY
             0, 0, 0,        #-- ACCELERATIONS
-            0, 0)
+            0,rra 0)
     p.vehicle.send_mavlink(msg)
     p.vehicle.commands.upload()
 
@@ -42,7 +43,7 @@ def SetHeading(heading):
     p.vehicle.commands.upload()
 def StopMove():
     SetVelocity(0, 0, 0)
-    
+
 def TrackCoordinates(markerPoints, inputref):
     global errorX
     global errorY
