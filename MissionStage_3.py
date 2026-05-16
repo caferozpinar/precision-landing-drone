@@ -33,9 +33,9 @@ def MissionStage_3():
     timeoutTimer = time.time()
     while True:
         
-        frame = Camera.GetNextFrame(1)
+        frame = Camera.GetNextFrame(p.vehicleCameraType)
         whitePointCenters = Detect.Color("POINTS", frame)
-        markerCenters = Detect.Marker(whitePointCenters, "T")
+        markerCenters = Detect.Marker(whitePointCenters, "BASIC")
         if len(markerCenters) > 1:
             markerCenters = __FindAverage(markerCenters)
         elif len(markerCenters) > 0:
@@ -57,6 +57,7 @@ def MissionStage_3():
             if disarm:
                 DisarmMotors()
                 print("MissionStage_3 end")
+                Camera.CloseCam(p.vehicleInternalCameraSource)
                 sys.exit()
                 break
             if time.time() - timeoutTimer > p.detectionTimeout:

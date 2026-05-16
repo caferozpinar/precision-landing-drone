@@ -32,7 +32,7 @@ def Color(returnType: str, frame: list):
 
     if returnType == "POINTS":
         arrayPoints = []
-        contours, hieracry = cv2.findContours(imageBinary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+        _ , contours, _ = cv2.findContours(imageBinary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
         for i in contours:
             x, y, width, height = cv2.boundingRect(i)
@@ -73,6 +73,21 @@ def __distance(point1, point2):
     return math.sqrt(((point1[0] - point2[0]) * (point1[0] - point2[0])) + ((point1[1] - point2[1]) * (point1[1] - point2[1])))
 
 def Marker(pointsArray : list, shape : str = "T"):
+    if shape == "BASIC":
+        temp_x = 0
+        temp_y = 0
+        if pointsArray == []:
+            return []
+        else:
+            for i in pointsArray:
+                temp_x += (i[0] / len(pointsArray))
+                temp_y += (i[1] / len(pointsArray))
+            a = []
+            if temp_x == 0 and temp_y == 0:
+                return []
+            a.append(((temp_x, temp_y), (temp_x, temp_y), (temp_x, temp_y), (temp_x, temp_y)))
+            return a
+        
     if shape == "T":
         if len(pointsArray) < 4:
             return []

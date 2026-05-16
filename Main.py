@@ -4,6 +4,8 @@ from MissionStage_2 import MissionStage_2
 from MissionStage_3 import MissionStage_3
 from Emergency import SafeLand
 import sys
+import Camera
+import Parameters as p
 
 while True:
     try:
@@ -17,6 +19,7 @@ while True:
         MissionStage_2()
         MissionStage_3()
     except Exception as e:
+        Camera.CloseCam(p.vehicleInternalCameraSource)
         SafeLand()
         print(e)
         sys.exit()

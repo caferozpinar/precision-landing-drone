@@ -31,7 +31,7 @@ def __checkLidarStatus():
             raise e
     pass
 def __checkGimballStatus():
-    if p.vehicleEnableGimball:
+    if False:
         if p.vehicle.gimbal.pitch != None or p.vehicle.gimbal.roll != None or p.vehicle.gimbal.yaw != None:
             print(" Gimbal status: %s" % p.vehicle.gimbal.pitch)
         else:
