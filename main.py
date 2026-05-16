@@ -13,11 +13,11 @@ finder_threshold = 10.0, 3.0, 2.0
 pointer_location = (40.9591942 , 29.1356228)
 
 distance_pos_ref = 0
-Kp_pos = 0.1
-Kp_vel = 0.1
-Ki_vel = 0.001
+Kp_pos = 0.5
+Kp_vel = 0.5
+Ki_vel = 0.01
 Ui_vel_integ = 0
-Upi_max = 0.2 #3
+Upi_max = 0.4 #3
 
 distance_height_ref = 30
 Kp_height = 0
@@ -39,12 +39,13 @@ class precisionLand():
             self.camera.setThreshold(camera_threshold[0], camera_threshold[1])
             self.TFinder = shapeFinder.TFinder()
             self.TFinder.setThreshold(finder_threshold[0], finder_threshold[1], finder_threshold[2])      
-            self.vehicle = motion_control.uav("/dev/ttyAMA0", baudrate=921600, heartbeat_timeout=180)
+            self.vehicle = motion_control.uav("/dev/ttyAMA0", baudrate=115200, heartbeat_timeout=180)
             self.vehicle.printStatus()
             self.vehicle.setMultiplier(distance_pos_ref, Kp_pos, Kp_vel, Ki_vel, Upi_max)
 
             return 0
-        except:
+        except Exception as e:
+            print(e)
             return 1
     def takeoffAndQuest(self, takeoff_alt):
         success = self.vehicle.prearmCheck()

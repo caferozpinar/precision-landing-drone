@@ -11,6 +11,20 @@ class uav():
         self.vhc = dronekit.connect(connection_string, baud = baudrate, heartbeat_timeout = heartbeat_timeout)
         print(self.vhc.mode.name)
         print("connected vehicle")
+        self.start = 1
+        logfile = open("lastlog.txt", "r+")
+        default_log = 0
+        lastlog = logfile.readline()
+        if len(lastlog) == 0 :
+            logfile.write(str(default_log))
+            lastlog = 0
+        else :
+            lastlog = int(lastlog[0])
+            logfile.seek(0)
+            logfile.truncate()
+            logfile.write(str(lastlog + 1))
+
+        self.logging_file = open("flight_log_" + str(lastlog) + ".txt", "w")
 
     def prearmCheck(self):
         print("Basic pre-arm checks")
@@ -79,7 +93,6 @@ class uav():
         self.Ui_vel_integ_x = 0
         self.Ui_vel_integ_y = 0
         self.Upi_max = Upi_max
-        
 
     def disarm(self):
         self.vhc.armed = False
@@ -87,13 +100,16 @@ class uav():
     def trackCoordinates(self, coor_array, resolution):
         #self.vhc.location.global_frame.alt
 
+        if self.start == 1:
+            self.start_time = time.time()
+            self.start = 0
         if len(coor_array) < 4: return 2
-        temp = (0.54630248984 * self.vhc.location.global_frame.alt * 2) / resolution[0]
-        #temp = (0.54630248984 * 1 * 2) / resolution[0]
+        #temp = (0.54630248984 * self.vhc.location.global_frame.alt) / resolution[1]
+        temp = (0.54630248984 * 1) / resolution[0]
         mid_pointer_x = (coor_array[0][0] + coor_array[2][0]) / 2
         mid_pointer_y = (coor_array[0][1] + coor_array[2][1]) / 2
-        distance_x = (resolution[0] / 2) - mid_pointer_x
-        distance_y = (resolution[1] / 2) - mid_pointer_y
+        distance_x = (resolution[1] / 2) - mid_pointer_x
+        distance_y = (resolution[0] / 2) - mid_pointer_y
         distance_real_y = distance_x * temp
         distance_real_x = distance_y * temp
         
@@ -106,7 +122,7 @@ class uav():
         Upi_vel_x = Up_vel_x + Ui_vel_x
         if Upi_vel_x > self.Upi_max:Upi_vel_x = self.Upi_max
         if Upi_vel_x < -1 * self.Upi_max: Upi_vel_x = self.Upi_max * -1
-        velocity_x = Upi_vel_x
+        velocity_x = Upi_vel_x * -1
         self.Ui_vel_integ_x = Ui_vel_x
 
         vel_y = self.vhc.velocity[2]
@@ -118,20 +134,17 @@ class uav():
         Upi_vel_y = Up_vel_y + Ui_vel_y
         if Upi_vel_y > self.Upi_max:Upi_vel_y = self.Upi_max
         if Upi_vel_y < -1 * self.Upi_max: Upi_vel_y = self.Upi_max * -1
-        velocity_y = Upi_vel_y * -1
+        velocity_y = Upi_vel_y
         self.Ui_vel_integ_y = Ui_vel_y
         
-
+        self.logging_file.write(str(distance_x) + "," + str(distance_real_x) + "," + str(velocity_x) + "," + str(vel_x) + "," + str(distance_y) + "," + str(distance_real_y) + "," + str(velocity_y) + "," + str(vel_y)+ "," + str(self.start_time - time.time()) + "\n")
         
-        
-        error_circ = math.sqrt((error_x ** 2) + (error_y ** 2))
-        print("errorcirc: " + str(error_circ))
-        if error_circ <= 10: 
+        if error_x <= 5 and error_y <= 5: 
             velocity_z = 0.2
         else: 
             velocity_z = 0
         print(" x velocity : " + str(velocity_x) + " y velocity : " + str(velocity_y) + " z velocity : " + str(velocity_z))
         self.set_velocity_body(self.vhc, velocity_x, velocity_y, velocity_z)
 
-        if self.vhc.location.global_frame.alt <= 0: return 0
+        if self.vhc.rangefinder.distance <= 0.12: return 0
         return 2

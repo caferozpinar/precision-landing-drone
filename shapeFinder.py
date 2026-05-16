@@ -51,7 +51,7 @@ class TFinder():
 
 
     def findShape(self, array):
-        print(array)
+        #print(array)
         shape_array = []
         shape_array.clear()
 
@@ -64,15 +64,18 @@ class TFinder():
             return 2, shape_array
 
         linear_centers = self.checkLinear(array)
+        print(linear_centers)
         equal_olmayan = self.checkEqual(linear_centers)
+        print(equal_olmayan)
         shape_array = self.checkBranch(equal_olmayan,array)
+        print(shape_array)
         if len(shape_array) >= 1:
             shape_array = list(shape_array)
             tmp = shape_array[0]
             shape_array.clear()
             shape_array = tmp
         if len(shape_array) < 4:
-            shape_array = list(len(shape_array))
+            shape_array = list(shape_array)
             print("what")
             shape_array.clear()
             return 2, shape_array
@@ -113,7 +116,7 @@ class TFinder():
                     # error x = estimated_x - x
                     error_x = abs(estimated_x - point_3[0])
                     error_y = abs(estimated_y - point_3[1])
-
+                    
                     if error_x < self.distance(array[point_1], array[point_2]) / self.linear_threshold and error_y < self.distance(array[point_1], array[point_2]) / self.linear_threshold:
                         # linear points list => ((x1,y1),(x2,y2),(x3,y3))
                         linear_points.insert(0, ((array[point_1][0], array[point_1][1]), (array[point_2][0], array[point_2][1]), (point_3[0], point_3[1])))
