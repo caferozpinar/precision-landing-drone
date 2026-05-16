@@ -53,6 +53,7 @@ def MissionStage_3():
                 break
         
         else:
+            TrackCoordinates(markerCenters, p.centerPoint)
             disarm = CheckDisarmAltitude()
             if disarm:
                 DisarmMotors()

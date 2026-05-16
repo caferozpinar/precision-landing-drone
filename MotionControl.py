@@ -1,6 +1,8 @@
 import Parameters as p
 from pymavlink import mavutil
 import math
+errorX = 0
+errorY = 0
 
 def SetVelocity(vx, vy, vz):
     """ Remember: vz is positive downward!!!
@@ -42,6 +44,8 @@ def StopMove():
     SetVelocity(0, 0, 0)
     
 def TrackCoordinates(markerPoints, inputref):
+    global errorX
+    global errorY
     referencepoint = [None, None]
     if not p.vehicleEnableGimball:
         # fix the reference point with using vehicle attitude.
@@ -51,49 +55,80 @@ def TrackCoordinates(markerPoints, inputref):
         referencepoint[1] = inputref[1] - ((inputref[1] * pitchAngleDegree) / (p.cameraFovAngle[1] / 2))
     else:
         referencepoint = inputref
-    # Fix yaw direction
-    # errorAngle = math.atan2((markerPoints[1][1] - markerPoints[3][1]),(markerPoints[1][0] - markerPoints[3][0]))
-    # fixedAngle = p.vehicle.heading + errorAngle
-    # SetHeading(fixedAngle)
-    # Head Marker
-    markerCenter = [0, 0]
-    for i in markerPoints:
-        markerCenter[0] += i[0]
-        markerCenter[1] += i[1]
-    markerCenter[0] /= 4
-    markerCenter[1] /= 4
-    errorX = 0
-    errorY = 0
-    errorX = referencepoint[0] - markerCenter[0]
-    errorY = referencepoint[1] - markerCenter[1]
-    
-    velocityX = errorX * p.xAxisProportionalGain
-    velocityY = errorY * p.yAxisProportionalGain
+    if len(markerPoints) == 0:
+        velocityX = errorX * p.xAxisProportionalGain
+        velocityY = errorY * p.yAxisProportionalGain
+
+    else:
+        # Fix yaw direction
+        # errorAngle = math.atan2((markerPoints[1][1] - markerPoints[3][1]),(markerPoints[1][0] - markerPoints[3][0]))
+        # fixedAngle = p.vehicle.heading + errorAngle
+        # SetHeading(fixedAngle)
+        # Head Marker
+        markerCenter = [0, 0]
+        for i in markerPoints:
+            markerCenter[0] += i[0]
+            markerCenter[1] += i[1]
+        markerCenter[0] /= 4
+        markerCenter[1] /= 4
+
+        errorX = referencepoint[0] - markerCenter[0]
+        errorY = referencepoint[1] - markerCenter[1]
+        
+        velocityX = errorX * p.xAxisProportionalGain
+        velocityY = errorY * p.yAxisProportionalGain
 
     if velocityY > p.velocitySaturation: velocityY = p.velocitySaturation
     if velocityY < p.velocitySaturation * -1: velocityY = p.velocitySaturation * -1
     if velocityX > p.velocitySaturation: velocityX = p.velocitySaturation
     if velocityX < p.velocitySaturation * -1: velocityX = p.velocitySaturation * -1
     velocityX = velocityX * -1
-    velocityY = velocityY
-    print(velocityY, velocityX, p.zVelocity)
-    SetVelocity(velocityY, velocityX, p.zVelocity)
+    velocityY = velocityY * -1
+    print(velocityX, velocityY, p.zVelocity)
+    SetVelocity(velocityX, velocityY, p.zVelocity)
     
-def DecreaseAltitude(markerPoints, referencepoint):
-    markerCenter = [0, 0]
-    for i in markerPoints:
-        markerCenter[0] += i[0]
-        markerCenter[1] += i[1]
-    if len(markerPoints) > 1:
-        markerCenter[0] /= len(markerPoints)
-        markerCenter[1] /= len(markerPoints)
-    
-    if referencepoint[0] == 0: referencepoint[0] = 0.001
-    if referencepoint[1] == 0: referencepoint[1] = 0.001
-    xvel = (p.zAxisDefaultSpeed * p.zAxisGain) * (1 - (abs(markerCenter[0] - referencepoint[0]) / referencepoint[0]))
-    yvel = (p.zAxisDefaultSpeed * p.zAxisGain) * (1 - (abs(markerCenter[1] - referencepoint[1]) / referencepoint[1]))
-    totalVelocity = xvel + yvel
-    p.zVelocity = totalVelocity
+def DecreaseAltitude(markerPoints, inputref):
+    global errorX
+    global errorY
+    referencepoint = [None, None]
+    if not p.vehicleEnableGimball:
+        # fix the reference point with using vehicle attitude.
+        rollAngleDegree = math.degrees(p.vehicle.attitude.roll)
+        pitchAngleDegree = math.degrees(p.vehicle.attitude.pitch)
+        referencepoint[0] = inputref[0] - ((inputref[0] * rollAngleDegree) / (p.cameraFovAngle[0] / 2))
+        referencepoint[1] = inputref[1] - ((inputref[1] * pitchAngleDegree) / (p.cameraFovAngle[1] / 2))
+    else:
+        referencepoint = inputref
+    if len(markerPoints) == 0:
+        velocityX = errorX * p.xAxisProportionalGain
+        velocityY = errorY * p.yAxisProportionalGain
+
+    else:
+        # Fix yaw direction
+        # errorAngle = math.atan2((markerPoints[1][1] - markerPoints[3][1]),(markerPoints[1][0] - markerPoints[3][0]))
+        # fixedAngle = p.vehicle.heading + errorAngle
+        # SetHeading(fixedAngle)
+        # Head Marker
+        markerCenter = [0, 0]
+        for i in markerPoints:
+            markerCenter[0] += i[0]
+            markerCenter[1] += i[1]
+        markerCenter[0] /= 4
+        markerCenter[1] /= 4
+
+        errorX = referencepoint[0] - markerCenter[0]
+        errorY = referencepoint[1] - markerCenter[1]
+        
+        velocityX = errorX * p.xAxisProportionalGain
+        velocityY = errorY * p.yAxisProportionalGain
+
+    if velocityY > p.velocitySaturation: velocityY = p.velocitySaturation
+    if velocityY < p.velocitySaturation * -1: velocityY = p.velocitySaturation * -1
+    if velocityX > p.velocitySaturation: velocityX = p.velocitySaturation
+    if velocityX < p.velocitySaturation * -1: velocityX = p.velocitySaturation * -1
+    velocityX = velocityX * -1
+    velocityY = velocityY * -1
+    p.zVelocity = ((p.velocitySaturation - abs(velocityX)) + (p.velocitySaturation - abs(velocityY))) / 2
 
 def CheckDisarmAltitude() -> bool: #"returns true or false value"
     if p.vehicle.location.global_relative_frame.alt < p.landingAltitude:
