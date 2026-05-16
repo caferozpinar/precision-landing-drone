@@ -1,7 +1,7 @@
 # precision-landing-drone
 
-DroneKit + OpenCV tabanlı hassas iniş (precision landing) projesinin sürüm arşividir.  
-Bu README, özellikle **v0.4.4** sürümünün amacını, akışını ve dosya sorumluluklarını GitHub projesi standardında açıklar.
+Bu repository, hassas iniş yazılımının gelişim sürecini commit ve tag bazlı olarak dokümante eder.  
+Bu doküman, **v0.4.4** sürümünü merkeze alarak sistemin amacı, çalışma akışı ve modül sorumluluklarını teknik olarak özetler.
 
 ---
 
@@ -132,20 +132,6 @@ Proje modülerdir ve sorumluluklar ayrılmıştır:
 ### `Test_Class.py`
 - Basit bir görüntü test dosyasıdır (`Detect.Color` çağrısı).
 
----
-
-## v0.4.4 Teknik Durum (Önemli)
-
-Bu sürümde `MotionControl.py` içinde kritik bir sentaks problemi vardır:
-
-```python
-0,rra 0)
-```
-
-Bu satır nedeniyle v0.4.4 kaynak ağacı mevcut haliyle doğrudan çalıştırılabilir değildir.
-
----
-
 ## Kullanılan Teknolojiler
 
 - Python
@@ -153,10 +139,3 @@ Bu satır nedeniyle v0.4.4 kaynak ağacı mevcut haliyle doğrudan çalıştır�
 - pymavlink
 - OpenCV (`cv2`)
 - NumPy
-
----
-
-## Kısa Sonuç
-
-v0.4.4, proje mimarisini netleştiren ve logging tarafını genişletmeye başlayan bir sürümdür;  
-ancak mevcut kaynakta bulunan sentaks hatası nedeniyle koşum öncesi düzeltme gerektirir.
